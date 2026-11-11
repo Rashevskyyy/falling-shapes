@@ -1,0 +1,61 @@
+:root {
+  --bg: #0b0d12;
+  --stage-bg: #11141b;
+  --border: #2a303d;
+  --text: #e6e9f0;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font:
+    14px/1.4 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 100vh;
+  padding: 12px;
+}
+
+/* the rectangle; the canvas fills it completely */
+.stage {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 960px;
+  min-height: 200px;
+  max-height: 640px;
+  overflow: hidden;
+  background: var(--stage-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.stage canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
