@@ -1,10 +1,10 @@
 import { Color } from 'pixi.js';
 import { config } from '../config';
-import { ellipse, regularPolygon, star } from '../geometry/shapes';
-import { pick, randomRange } from '../utils/random';
+import { ellipse, irregularPolygon, regularPolygon, star } from '../geometry/shapes';
+import { pick, randomInt, randomRange } from '../utils/random';
 
 export type ShapeKind =
-  'triangle' | 'square' | 'pentagon' | 'hexagon' | 'circle' | 'ellipse' | 'star';
+  'triangle' | 'square' | 'pentagon' | 'hexagon' | 'circle' | 'ellipse' | 'star' | 'irregular';
 
 export interface ShapeData {
   kind: ShapeKind;
@@ -12,6 +12,7 @@ export interface ShapeData {
   points: number[];
 }
 
+// kinds used by the automatic spawner, irregular shapes come from clicks only
 const RANDOM_KINDS: readonly ShapeKind[] = [
   'triangle',
   'square',
@@ -32,6 +33,10 @@ export class ShapeFactory {
     circle: (r) => ellipse(r, r),
     ellipse: (r) => ellipse(r, r * randomRange(0.45, 0.7)),
     star: (r) => star(5, r, r * 0.45),
+    irregular: (r) => {
+      const { min, max } = config.irregularVertices;
+      return irregularPolygon(randomInt(min, max), r);
+    },
   };
 
   create(kind: ShapeKind): ShapeData {
@@ -46,6 +51,10 @@ export class ShapeFactory {
 
   createRandom(): ShapeData {
     return this.create(pick(RANDOM_KINDS));
+  }
+
+  createIrregular(): ShapeData {
+    return this.create('irregular');
   }
 
   // random hue, but saturation and lightness in a range, so the shapes stay bright on the dark background

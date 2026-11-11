@@ -1,5 +1,5 @@
-// calls onSpawn `rate` times per second.
-// progress is counted in "shapes", not seconds, so changing the rate doesn't cause a burst of spawns.
+// Calls onSpawn `rate` times per second.
+// Progress is counted in "shapes", not seconds, so changing the rate doesn't cause a burst of spawns.
 export class Spawner {
   private progress = 0;
 

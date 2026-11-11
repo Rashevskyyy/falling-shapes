@@ -1,6 +1,6 @@
 import { Container, Graphics, Rectangle } from 'pixi.js';
 
-// The rectangle the shapes fall through.
+// The rectangle the shapes fall through. Handles the mask and the clickable area.
 export class Playfield extends Container {
   readonly layer = new Container();
 
@@ -9,6 +9,10 @@ export class Playfield extends Container {
 
   constructor() {
     super();
+
+    // hitArea makes the empty space clickable, the mask also limits hit testing of the shapes
+    this.eventMode = 'static';
+    this.hitArea = this.rect;
     this.layer.mask = this.maskShape;
     this.addChild(this.layer, this.maskShape);
   }

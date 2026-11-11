@@ -1,5 +1,6 @@
-import { Application, type Ticker } from 'pixi.js';
+import { Application, type FederatedPointerEvent, type Ticker } from 'pixi.js';
 import { config } from '../config';
+import { Shape } from '../shapes/Shape';
 import { ShapeFactory } from '../shapes/ShapeFactory';
 import { Playfield } from '../view/Playfield';
 import { ShapeManager } from './ShapeManager';
@@ -28,6 +29,8 @@ export class Game {
     this.app.stage.addChild(this.playfield);
     this.resize(stage.clientWidth, stage.clientHeight);
 
+    this.playfield.on('pointertap', this.onTap);
+
     const resizeObserver = new ResizeObserver(([entry]) => {
       this.resize(entry.contentRect.width, entry.contentRect.height);
     });
@@ -41,6 +44,16 @@ export class Game {
 
     this.spawner.update(dt, config.spawnRate);
     this.shapes.update(dt, config.gravity, this.playfield.areaHeight);
+  };
+
+  private readonly onTap = (event: FederatedPointerEvent): void => {
+    if (event.target instanceof Shape) {
+      this.shapes.remove(event.target);
+      return;
+    }
+
+    const { x, y } = event.getLocalPosition(this.playfield);
+    this.shapes.spawnAt(this.factory.createIrregular(), x, y);
   };
 
   private spawnFromTop(): void {

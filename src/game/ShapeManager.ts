@@ -8,16 +8,22 @@ export class ShapeManager {
 
   constructor(private readonly layer: Container) {}
 
+  spawnAt(data: ShapeData, x: number, y: number): Shape {
+    const shape = new Shape(data);
+    shape.position.set(x, y);
+    this.layer.addChild(shape);
+    this.active.add(shape);
+    return shape;
+  }
+
   // Fully above the top edge, at a random x where the whole shape fits horizontally
   spawnAbove(data: ShapeData, width: number): Shape {
-    const shape = new Shape(data);
+    const shape = this.spawnAt(data, 0, 0);
     const { minX, maxX, maxY } = shape.extent;
     const from = -minX;
     const to = Math.max(from, width - maxX);
 
     shape.position.set(randomRange(from, to), -maxY);
-    this.layer.addChild(shape);
-    this.active.add(shape);
     return shape;
   }
 

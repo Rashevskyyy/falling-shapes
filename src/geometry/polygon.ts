@@ -1,4 +1,4 @@
-// polygons are flat arrays [x0, y0, x1, y1, ...] - the same format Graphics.poly() takes.
+// Polygons are flat arrays [x0, y0, x1, y1, ...] - the same format Graphics.poly() takes.
 
 export interface Box {
   minX: number;

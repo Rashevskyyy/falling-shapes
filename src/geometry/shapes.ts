@@ -40,3 +40,19 @@ export function star(spikes: number, outerRadius: number, innerRadius: number): 
 
   return points;
 }
+
+// Vertices go around the center with growing angles and random distances.
+// Angle jitter is less than half a step, so the order is kept and the outline never crosses itself.
+export function irregularPolygon(vertices: number, radius: number): number[] {
+  const step = TAU / vertices;
+  const start = Math.random() * TAU;
+  const points: number[] = [];
+
+  for (let i = 0; i < vertices; i++) {
+    const angle = start + i * step + (Math.random() - 0.5) * step * 0.8;
+    const distance = radius * (0.35 + Math.random() * 0.65);
+    points.push(Math.cos(angle) * distance, Math.sin(angle) * distance);
+  }
+
+  return points;
+}

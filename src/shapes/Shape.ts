@@ -9,6 +9,8 @@ export class Shape extends Graphics {
 
   constructor(data: ShapeData) {
     super();
+    this.eventMode = 'static';
+    this.cursor = 'pointer';
     polygonBounds(data.points, this.box);
 
     // inner stroke, so nothing is drawn outside the polygon
