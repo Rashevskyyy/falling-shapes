@@ -5,8 +5,19 @@ import { randomRange } from '../utils/random';
 
 export class ShapeManager {
   private readonly active = new Set<Shape>();
+  private count = 0;
+  private area = 0;
 
   constructor(private readonly layer: Container) {}
+
+  // shapes that are at least partly inside the rectangle, updated every frame
+  get visibleCount(): number {
+    return this.count;
+  }
+
+  get visibleArea(): number {
+    return this.area;
+  }
 
   spawnAt(data: ShapeData, x: number, y: number): Shape {
     const shape = new Shape(data);
@@ -33,14 +44,27 @@ export class ShapeManager {
     }
   }
 
-  update(dt: number, acceleration: number, height: number): void {
+  update(dt: number, acceleration: number, width: number, height: number): void {
+    let count = 0;
+    let area = 0;
+
     // deleting the current item while iterating a Set is safe
     for (const shape of this.active) {
       shape.fall(dt, acceleration);
 
       if (shape.isBelow(height)) {
         this.remove(shape);
+        continue;
+      }
+
+      const visible = shape.visibleArea(width, height);
+      if (visible > 0) {
+        count++;
+        area += visible;
       }
     }
+
+    this.count = count;
+    this.area = area;
   }
 }

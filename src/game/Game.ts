@@ -2,9 +2,15 @@ import { Application, type FederatedPointerEvent, type Ticker } from 'pixi.js';
 import { config } from '../config';
 import { Shape } from '../shapes/Shape';
 import { ShapeFactory } from '../shapes/ShapeFactory';
+import { StatsPanel } from '../ui/StatsPanel';
 import { Playfield } from '../view/Playfield';
 import { ShapeManager } from './ShapeManager';
 import { Spawner } from './Spawner';
+
+export interface GameElements {
+  stage: HTMLElement;
+  stats: HTMLElement;
+}
 
 export class Game {
   private readonly app = new Application();
@@ -12,11 +18,14 @@ export class Game {
   private readonly shapes = new ShapeManager(this.playfield.layer);
   private readonly factory = new ShapeFactory();
   private readonly spawner = new Spawner(() => this.spawnFromTop());
+  private readonly stats: StatsPanel;
 
-  constructor(private readonly stage: HTMLElement) {}
+  constructor(private readonly elements: GameElements) {
+    this.stats = new StatsPanel(elements.stats);
+  }
 
   async start(): Promise<void> {
-    const { stage } = this;
+    const { stage } = this.elements;
 
     await this.app.init({
       width: stage.clientWidth,
@@ -41,9 +50,11 @@ export class Game {
 
   private readonly update = (ticker: Ticker): void => {
     const dt = ticker.deltaMS / 1000;
+    const { areaWidth, areaHeight } = this.playfield;
 
     this.spawner.update(dt, config.spawnRate);
-    this.shapes.update(dt, config.gravity, this.playfield.areaHeight);
+    this.shapes.update(dt, config.gravity, areaWidth, areaHeight);
+    this.stats.update(this.shapes.visibleCount, this.shapes.visibleArea);
   };
 
   private readonly onTap = (event: FederatedPointerEvent): void => {
