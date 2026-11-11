@@ -1,6 +1,6 @@
 import { Application, type Ticker } from 'pixi.js';
 import { config } from '../config';
-import { regularPolygon } from '../geometry/shapes';
+import { ShapeFactory } from '../shapes/ShapeFactory';
 import { Playfield } from '../view/Playfield';
 import { ShapeManager } from './ShapeManager';
 import { Spawner } from './Spawner';
@@ -9,6 +9,7 @@ export class Game {
   private readonly app = new Application();
   private readonly playfield = new Playfield();
   private readonly shapes = new ShapeManager(this.playfield.layer);
+  private readonly factory = new ShapeFactory();
   private readonly spawner = new Spawner(() => this.spawnFromTop());
 
   constructor(private readonly stage: HTMLElement) {}
@@ -43,10 +44,7 @@ export class Game {
   };
 
   private spawnFromTop(): void {
-    const { min, max } = config.shapeRadius;
-    const radius = min + Math.random() * (max - min);
-
-    this.shapes.spawnAbove(regularPolygon(3, radius), 0x7aa2ff, this.playfield.areaWidth);
+    this.shapes.spawnAbove(this.factory.createRandom(), this.playfield.areaWidth);
   }
 
   private resize(width: number, height: number): void {

@@ -7,4 +7,6 @@ export const config = {
   gravity: 300,
 
   shapeRadius: { min: 22, max: 42 },
+  colorSaturation: { min: 60, max: 90 },
+  colorLightness: { min: 50, max: 65 },
 } as const;

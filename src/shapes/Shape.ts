@@ -1,16 +1,20 @@
 import { Graphics } from 'pixi.js';
 import { polygonBounds, type Box } from '../geometry/polygon';
+import type { ShapeData } from './ShapeFactory';
 
 export class Shape extends Graphics {
   velocity = 0;
 
   private readonly box: Box = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
-  constructor(points: number[], color: number) {
+  constructor(data: ShapeData) {
     super();
-    polygonBounds(points, this.box);
+    polygonBounds(data.points, this.box);
 
-    this.poly(points).fill(color).stroke({ width: 2, color: 0x000000, alpha: 0.25, alignment: 1 });
+    // inner stroke, so nothing is drawn outside the polygon
+    this.poly(data.points)
+      .fill(data.color)
+      .stroke({ width: 2, color: 0x000000, alpha: 0.25, alignment: 1 });
   }
 
   // local bounds, relative to the shape position

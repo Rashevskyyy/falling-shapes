@@ -1,19 +1,21 @@
 import type { Container } from 'pixi.js';
 import { Shape } from '../shapes/Shape';
+import type { ShapeData } from '../shapes/ShapeFactory';
+import { randomRange } from '../utils/random';
 
 export class ShapeManager {
   private readonly active = new Set<Shape>();
 
   constructor(private readonly layer: Container) {}
 
-  // fully above the top edge, at a random x where the whole shape fits horizontally
-  spawnAbove(points: number[], color: number, width: number): Shape {
-    const shape = new Shape(points, color);
+  // Fully above the top edge, at a random x where the whole shape fits horizontally
+  spawnAbove(data: ShapeData, width: number): Shape {
+    const shape = new Shape(data);
     const { minX, maxX, maxY } = shape.extent;
     const from = -minX;
     const to = Math.max(from, width - maxX);
 
-    shape.position.set(from + Math.random() * (to - from), -maxY);
+    shape.position.set(randomRange(from, to), -maxY);
     this.layer.addChild(shape);
     this.active.add(shape);
     return shape;
