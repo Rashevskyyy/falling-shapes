@@ -12,6 +12,7 @@ function getElement(id: string): HTMLElement {
 const game = new Game({
   stage: getElement('stage'),
   stats: getElement('stats'),
+  controls: getElement('controls'),
 });
 
 game.start().catch((err) => console.error(err));

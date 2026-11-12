@@ -1,8 +1,10 @@
 import { Application, type FederatedPointerEvent, type Ticker } from 'pixi.js';
 import { config } from '../config';
+import { RangeValue } from '../core/RangeValue';
 import { Shape } from '../shapes/Shape';
 import { ShapeFactory } from '../shapes/ShapeFactory';
 import { StatsPanel } from '../ui/StatsPanel';
+import { Stepper } from '../ui/Stepper';
 import { Playfield } from '../view/Playfield';
 import { ShapeManager } from './ShapeManager';
 import { Spawner } from './Spawner';
@@ -10,9 +12,12 @@ import { Spawner } from './Spawner';
 export interface GameElements {
   stage: HTMLElement;
   stats: HTMLElement;
+  controls: HTMLElement;
 }
 
 export class Game {
+  private readonly spawnRate = new RangeValue(config.spawnRate);
+  private readonly gravity = new RangeValue(config.gravity);
   private readonly app = new Application();
   private readonly playfield = new Playfield();
   private readonly shapes = new ShapeManager(this.playfield.layer);
@@ -22,6 +27,8 @@ export class Game {
 
   constructor(private readonly elements: GameElements) {
     this.stats = new StatsPanel(elements.stats);
+    new Stepper(elements.controls, 'Shapes / sec', this.spawnRate);
+    new Stepper(elements.controls, 'Gravity', this.gravity);
   }
 
   async start(): Promise<void> {
@@ -52,8 +59,8 @@ export class Game {
     const dt = ticker.deltaMS / 1000;
     const { areaWidth, areaHeight } = this.playfield;
 
-    this.spawner.update(dt, config.spawnRate);
-    this.shapes.update(dt, config.gravity, areaWidth, areaHeight);
+    this.spawner.update(dt, this.spawnRate.value);
+    this.shapes.update(dt, this.gravity.value * config.gravityScale, areaWidth, areaHeight);
     this.stats.update(this.shapes.visibleCount, this.shapes.visibleArea);
   };
 
