@@ -61,7 +61,7 @@ export class Game {
     this.app.stage.addChild(this.playfield);
     this.resize(stage.clientWidth, stage.clientHeight);
 
-    this.playfield.on('pointertap', this.onTap);
+    this.playfield.on('pointerdown', this.onPointerDown);
     this.resizeObserver.observe(stage);
     this.app.ticker.add(this.update);
   }
@@ -93,7 +93,8 @@ export class Game {
     }
   };
 
-  private readonly onTap = (event: FederatedPointerEvent): void => {
+  // pointerdown instead of pointertap: a falling shape can move away between down and up
+  private readonly onPointerDown = (event: FederatedPointerEvent): void => {
     if (event.target instanceof Shape) {
       this.shapes.remove(event.target);
       return;

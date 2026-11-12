@@ -31,6 +31,8 @@ body {
     'Segoe UI',
     Roboto,
     sans-serif;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .app {
@@ -40,7 +42,9 @@ body {
   justify-content: center;
   gap: 14px;
   height: 100vh;
-  padding: 12px;
+  height: 100dvh;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
 }
 
 /* the rectangle; the canvas fills it completely */
@@ -55,6 +59,8 @@ body {
   background: var(--stage-bg);
   border: 1px solid var(--border);
   border-radius: 12px;
+  touch-action: none;
+  user-select: none;
 }
 
 .stage canvas {
@@ -123,19 +129,23 @@ body {
 }
 
 .stepper__button {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   color: var(--text);
   font: inherit;
-  font-size: 20px;
+  font-size: 22px;
   background: none;
   border: 0;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
-.stepper__button:hover:not(:disabled) {
-  background: rgb(255 255 255 / 6%);
+/* without the media query the hover state sticks after a tap on touch screens */
+@media (hover: hover) {
+  .stepper__button:hover:not(:disabled) {
+    background: rgb(255 255 255 / 6%);
+  }
 }
 
 .stepper__button:active:not(:disabled) {
@@ -158,4 +168,17 @@ body {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-height: 480px) {
+  .hint {
+    display: none;
+  }
 }
