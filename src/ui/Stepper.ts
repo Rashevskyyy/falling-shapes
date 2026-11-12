@@ -3,27 +3,34 @@ import { createElement } from './dom';
 
 // "- value +" control bound to a RangeValue
 export class Stepper {
+  private readonly root: HTMLElement;
   private readonly output: HTMLOutputElement;
   private readonly decreaseButton: HTMLButtonElement;
   private readonly increaseButton: HTMLButtonElement;
+  private readonly unsubscribe: () => void;
 
   constructor(
     container: HTMLElement,
     label: string,
     private readonly range: RangeValue,
   ) {
-    const root = createElement('div', 'stepper');
+    this.root = createElement('div', 'stepper');
     this.output = createElement('output', 'stepper__value');
     this.decreaseButton = this.createButton('−', `Decrease ${label}`, () => range.decrement());
     this.increaseButton = this.createButton('+', `Increase ${label}`, () => range.increment());
 
     const row = createElement('div', 'stepper__row');
     row.append(this.decreaseButton, this.output, this.increaseButton);
-    root.append(row, createElement('span', 'stepper__label', label));
-    container.append(root);
+    this.root.append(row, createElement('span', 'stepper__label', label));
+    container.append(this.root);
 
-    range.subscribe(() => this.render());
+    this.unsubscribe = range.subscribe(() => this.render());
     this.render();
+  }
+
+  destroy(): void {
+    this.unsubscribe();
+    this.root.remove();
   }
 
   private render(): void {

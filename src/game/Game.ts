@@ -20,48 +20,77 @@ export class Game {
   private readonly gravity = new RangeValue(config.gravity);
   private readonly app = new Application();
   private readonly playfield = new Playfield();
-  private readonly shapes = new ShapeManager(this.playfield.layer);
+  private readonly shapes = new ShapeManager(this.playfield.layer, config.poolLimit);
   private readonly factory = new ShapeFactory();
   private readonly spawner = new Spawner(() => this.spawnFromTop());
   private readonly stats: StatsPanel;
+  private readonly steppers: Stepper[];
+  private readonly resizeObserver: ResizeObserver;
+  private statsTimer = 0;
+  private started = false;
 
   constructor(private readonly elements: GameElements) {
     this.stats = new StatsPanel(elements.stats);
-    new Stepper(elements.controls, 'Shapes / sec', this.spawnRate);
-    new Stepper(elements.controls, 'Gravity', this.gravity);
+    this.steppers = [
+      new Stepper(elements.controls, 'Shapes / sec', this.spawnRate),
+      new Stepper(elements.controls, 'Gravity', this.gravity),
+    ];
+    this.resizeObserver = new ResizeObserver(([entry]) => {
+      this.resize(entry.contentRect.width, entry.contentRect.height);
+    });
   }
 
   async start(): Promise<void> {
     const { stage } = this.elements;
+    const pixelRatio = window.devicePixelRatio || 1;
 
     await this.app.init({
       width: stage.clientWidth,
       height: stage.clientHeight,
       background: config.background,
-      antialias: true,
+      // above 2x the difference isn't visible, but the fill cost on phones is
+      resolution: Math.min(pixelRatio, config.maxResolution),
+      autoDensity: true,
+      // high-dpi screens look smooth without MSAA
+      antialias: pixelRatio < 2,
+      eventFeatures: { globalMove: false, wheel: false },
     });
+    this.started = true;
 
     stage.prepend(this.app.canvas);
     this.app.stage.addChild(this.playfield);
     this.resize(stage.clientWidth, stage.clientHeight);
 
     this.playfield.on('pointertap', this.onTap);
-
-    const resizeObserver = new ResizeObserver(([entry]) => {
-      this.resize(entry.contentRect.width, entry.contentRect.height);
-    });
-    resizeObserver.observe(stage);
-
+    this.resizeObserver.observe(stage);
     this.app.ticker.add(this.update);
   }
 
+  destroy(): void {
+    this.resizeObserver.disconnect();
+    this.steppers.forEach((stepper) => stepper.destroy());
+    this.stats.destroy();
+    this.shapes.destroy();
+
+    if (this.started) {
+      this.app.destroy(true, { children: true });
+    }
+  }
+
   private readonly update = (ticker: Ticker): void => {
+    // deltaMS is capped by ticker.minFPS (100ms by default), so after switching tabs nothing jumps
     const dt = ticker.deltaMS / 1000;
     const { areaWidth, areaHeight } = this.playfield;
 
     this.spawner.update(dt, this.spawnRate.value);
     this.shapes.update(dt, this.gravity.value * config.gravityScale, areaWidth, areaHeight);
-    this.stats.update(this.shapes.visibleCount, this.shapes.visibleArea);
+
+    // the text doesn't need to change 60 times per second
+    this.statsTimer += dt;
+    if (this.statsTimer >= config.statsInterval) {
+      this.statsTimer = 0;
+      this.stats.update(this.shapes.visibleCount, this.shapes.visibleArea);
+    }
   };
 
   private readonly onTap = (event: FederatedPointerEvent): void => {

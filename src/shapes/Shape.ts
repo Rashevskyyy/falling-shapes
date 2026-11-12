@@ -4,30 +4,36 @@ import type { ShapeData } from './ShapeFactory';
 
 export class Shape extends Graphics {
   velocity = 0;
-  // full area of the polygon, calculated once
-  readonly surfaceArea: number;
+  // full area of the polygon, calculated once in init()
+  surfaceArea = 0;
 
-  private readonly points: number[];
+  private points: number[] = [];
   private readonly box: Box = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 
-  constructor(data: ShapeData) {
+  constructor() {
     super();
     this.eventMode = 'static';
     this.cursor = 'pointer';
-
-    this.points = data.points;
-    this.surfaceArea = polygonArea(data.points);
-    polygonBounds(data.points, this.box);
-
-    // inner stroke, so nothing is drawn outside the polygon and the area stays exact
-    this.poly(data.points)
-      .fill(data.color)
-      .stroke({ width: 2, color: 0x000000, alpha: 0.25, alignment: 1 });
   }
 
   // local bounds, relative to the shape position
   get extent(): Readonly<Box> {
     return this.box;
+  }
+
+  init(data: ShapeData): this {
+    this.points = data.points;
+    this.surfaceArea = polygonArea(data.points);
+    polygonBounds(data.points, this.box);
+    this.velocity = 0;
+
+    // inner stroke, so nothing is drawn outside the polygon and the area stays exact
+    this.clear()
+      .poly(data.points)
+      .fill(data.color)
+      .stroke({ width: 2, color: 0x000000, alpha: 0.25, alignment: 1 });
+
+    return this;
   }
 
   fall(dt: number, acceleration: number): void {
@@ -57,5 +63,13 @@ export class Shape extends Graphics {
 
     // only shapes crossing an edge get here; the rect is moved to local space instead of moving the points
     return clippedArea(this.points, -this.x, -this.y, width - this.x, height - this.y);
+  }
+
+  reset(): void {
+    this.clear();
+    this.points = [];
+    this.velocity = 0;
+    this.surfaceArea = 0;
+    this.position.set(0, 0);
   }
 }

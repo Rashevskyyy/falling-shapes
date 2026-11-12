@@ -1,14 +1,25 @@
 import type { Container } from 'pixi.js';
+import { Pool } from '../core/Pool';
 import { Shape } from '../shapes/Shape';
 import type { ShapeData } from '../shapes/ShapeFactory';
 import { randomRange } from '../utils/random';
 
 export class ShapeManager {
   private readonly active = new Set<Shape>();
+  private readonly pool: Pool<Shape>;
   private count = 0;
   private area = 0;
 
-  constructor(private readonly layer: Container) {}
+  constructor(
+    private readonly layer: Container,
+    poolLimit: number,
+  ) {
+    this.pool = new Pool(
+      () => new Shape(),
+      (shape) => shape.destroy(),
+      poolLimit,
+    );
+  }
 
   // shapes that are at least partly inside the rectangle, updated every frame
   get visibleCount(): number {
@@ -20,7 +31,7 @@ export class ShapeManager {
   }
 
   spawnAt(data: ShapeData, x: number, y: number): Shape {
-    const shape = new Shape(data);
+    const shape = this.pool.get().init(data);
     shape.position.set(x, y);
     this.layer.addChild(shape);
     this.active.add(shape);
@@ -39,9 +50,13 @@ export class ShapeManager {
   }
 
   remove(shape: Shape): void {
-    if (this.active.delete(shape)) {
-      shape.destroy();
+    if (!this.active.delete(shape)) {
+      return;
     }
+
+    this.layer.removeChild(shape);
+    shape.reset();
+    this.pool.release(shape);
   }
 
   update(dt: number, acceleration: number, width: number, height: number): void {
@@ -66,5 +81,13 @@ export class ShapeManager {
 
     this.count = count;
     this.area = area;
+  }
+
+  destroy(): void {
+    for (const shape of this.active) {
+      shape.destroy();
+    }
+    this.active.clear();
+    this.pool.clear();
   }
 }

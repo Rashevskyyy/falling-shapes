@@ -10,4 +10,8 @@ export const config = {
   irregularVertices: { min: 5, max: 14 },
   colorSaturation: { min: 60, max: 90 },
   colorLightness: { min: 50, max: 65 },
+
+  poolLimit: 200,
+  statsInterval: 0.1,
+  maxResolution: 2,
 } as const;

@@ -5,6 +5,8 @@ const numberFormat = new Intl.NumberFormat('en-US');
 export class StatsPanel {
   private readonly countValue: HTMLElement;
   private readonly areaValue: HTMLElement;
+  private count = -1;
+  private area = -1;
 
   constructor(private readonly root: HTMLElement) {
     this.countValue = this.addField('Shapes');
@@ -12,9 +14,23 @@ export class StatsPanel {
     this.update(0, 0);
   }
 
+  // touches the DOM only when a value really changed
   update(count: number, area: number): void {
-    this.countValue.textContent = String(count);
-    this.areaValue.textContent = `${numberFormat.format(Math.round(area))} px²`;
+    const roundedArea = Math.round(area);
+
+    if (count !== this.count) {
+      this.count = count;
+      this.countValue.textContent = String(count);
+    }
+
+    if (roundedArea !== this.area) {
+      this.area = roundedArea;
+      this.areaValue.textContent = `${numberFormat.format(roundedArea)} px²`;
+    }
+  }
+
+  destroy(): void {
+    this.root.replaceChildren();
   }
 
   private addField(label: string): HTMLElement {

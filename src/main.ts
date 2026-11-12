@@ -16,3 +16,7 @@ const game = new Game({
 });
 
 game.start().catch((err) => console.error(err));
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => game.destroy());
+}

@@ -8,8 +8,7 @@ export interface Box {
 }
 
 // Shoelace formula
-export function polygonArea(points: readonly number[]): number {
-  const length = points.length;
+export function polygonArea(points: readonly number[], length = points.length): number {
   let sum = 0;
 
   for (let i = 0; i < length; i += 2) {
@@ -51,6 +50,10 @@ function createBox(): Box {
   return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 }
 
+// Reused between calls so clipping doesn't allocate new arrays every frame.
+const bufferA: number[] = [];
+const bufferB: number[] = [];
+
 /**
  * Area of the part of the polygon that lies inside the given rectangle.
  *
@@ -64,32 +67,33 @@ export function clippedArea(
   maxX: number,
   maxY: number,
 ): number {
-  let result = clipAgainst(points, 0, minX, 1);
-  result = clipAgainst(result, 0, maxX, -1);
-  result = clipAgainst(result, 1, minY, 1);
-  result = clipAgainst(result, 1, maxY, -1);
+  let length = clipAgainst(points, points.length, bufferA, 0, minX, 1);
+  length = clipAgainst(bufferA, length, bufferB, 0, maxX, -1);
+  length = clipAgainst(bufferB, length, bufferA, 1, minY, 1);
+  length = clipAgainst(bufferA, length, bufferB, 1, maxY, -1);
 
   // less than 3 vertices - nothing left
-  return result.length < 6 ? 0 : polygonArea(result);
+  return length < 6 ? 0 : polygonArea(bufferB, length);
 }
 
 /**
  * Keeps the part of the polygon on one side of the line `axis = limit`.
  * direction 1 keeps coordinates >= limit, -1 keeps coordinates <= limit.
+ * Returns the number of values written to `output`.
  */
 function clipAgainst(
   input: readonly number[],
+  length: number,
+  output: number[],
   axis: 0 | 1,
   limit: number,
   direction: 1 | -1,
-): number[] {
-  const output: number[] = [];
-  const length = input.length;
-
+): number {
   if (length === 0) {
-    return output;
+    return 0;
   }
 
+  let written = 0;
   let prevX = input[length - 2];
   let prevY = input[length - 1];
   let prevInside = ((axis === 0 ? prevX : prevY) - limit) * direction >= 0;
@@ -102,11 +106,13 @@ function clipAgainst(
     if (inside !== prevInside) {
       // the edge crosses the line, so the denominator can't be zero here
       const t = axis === 0 ? (limit - prevX) / (x - prevX) : (limit - prevY) / (y - prevY);
-      output.push(prevX + (x - prevX) * t, prevY + (y - prevY) * t);
+      output[written++] = prevX + (x - prevX) * t;
+      output[written++] = prevY + (y - prevY) * t;
     }
 
     if (inside) {
-      output.push(x, y);
+      output[written++] = x;
+      output[written++] = y;
     }
 
     prevX = x;
@@ -114,5 +120,5 @@ function clipAgainst(
     prevInside = inside;
   }
 
-  return output;
+  return written;
 }
